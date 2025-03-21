@@ -1,134 +1,50 @@
 # SketchCode
 
-![](https://img.shields.io/badge/python-3-brightgreen.svg) ![](https://img.shields.io/badge/tensorflow-1.1.0-orange.svg)
+一个深度学习项目，旨在将手绘的网页线框图转换为可运行的 HTML 代码。以下是对该项目的详细介绍：
 
-*Generating HTML Code from a hand-drawn wireframe*
+### 项目目标
+项目的主要目标是使用最新的深度学习算法简化设计工作流程，帮助所有企业能够快速创建和测试网页。理想情况下，该模型可以接收网页设计的简单手绘原型，并立即将其转换为可运行的 HTML 网页。
 
-![Preview](https://github.com/ashnkumar/sketch-code/blob/master/header_image.png)
+### 项目背景和灵感来源
+- **设计工作流程痛点**：在当今的设计工作流程中，通常涉及产品经理进行用户调研、设计师创建原型、工程师将设计转化为代码并部署产品。这一过程可能会受到瓶颈的影响，大型企业可能需要数周时间且涉及多个相关方，而小型企业可能因资源有限在用户界面设计上遇到困难。
+- **灵感来源**：受到图像字幕（Image Captioning）领域的启发，特别是 [pix2code](https://arxiv.org/abs/1705.07962) 论文和 Emil Wallner 的相关 [项目](https://blog.floydhub.com/turning-design-mockups-into-code-with-deep-learning/?source=techstories.org)，作者决定将项目重构为图像字幕任务，以网页线框图作为输入图像，对应的 HTML 代码作为输出文本。
 
-SketchCode is a deep learning model that takes hand-drawn web mockups and converts them into working HTML code. It uses an [image captioning](https://towardsdatascience.com/image-captioning-in-deep-learning-9cd23fb4d8d2) architecture to generate its HTML markup from hand-drawn website wireframes.
+### 项目依赖和数据集
+- **依赖**：项目依赖于 Python 3、pip 以及一系列 Python 库，如 Keras、TensorFlow、nltk 等，具体版本可参考 `requirements.txt` 文件。
+- **数据集**：项目基于 [pix2code](https://github.com/tonybeltramelli/pix2code) 和 [Design Mockups](https://github.com/emilwallner/Screenshot-to-code-in-Keras) 项目合成生成的数据集。初始数据集包含 1,750 个合成生成的网页截图及其相关源代码，每个网页由按钮、文本框和 div 等简单的 Bootstrap 元素组合而成，源代码使用领域特定语言（DSL）编写，编译器用于将 DSL 转换为 HTML 代码。
 
-For more information, check out this post: [Automating front-end development with deep learning](https://blog.insightdatascience.com/automated-front-end-development-using-deep-learning-3169dd086e82)
+### 模型架构和工作流程
+- **模型架构**：使用图像字幕模型架构，图像通过 CNN 网络处理，文本处理基于起始序列。在每个步骤中，模型对序列的下一个令牌的预测会添加到当前输入序列中，并作为新的输入序列提供给模型，直到模型预测到 *END* 令牌或达到源代码的令牌数量限制。
+- **工作流程**：模型预测生成的令牌集由编译器将 DSL 令牌转换为 HTML 代码，以便在任何浏览器中渲染。
 
-This project builds on the synthetically generated dataset and model architecture from [pix2code](https://github.com/tonybeltramelli/pix2code) by [Tony Beltramelli](https://github.com/tonybeltramelli) and the [Design Mockups](https://github.com/emilwallner/Screenshot-to-code-in-Keras) project from [Emil Wallner](https://github.com/emilwallner).
-
-<b>Note:</b> This project is meant as a proof-of-concept; the model isn't (yet) built to generalize to the variability of sketches seen in actual wireframes, and thus its performance relies on wireframes resembling the core dataset.
-
-
-## Setup
-### Prerequisites
-
-- Python 3 (not compatible with python 2)
-- pip
-
-### Install dependencies
-
+### 项目功能和使用方法
+- **功能**：
+    - 将单张手绘图像转换为 HTML 代码。
+    - 将文件夹中的一批图像转换为 HTML 代码。
+    - 训练模型，可以从头开始训练或使用预训练模型进行训练。
+    - 使用 BLEU 分数评估生成的预测结果。
+- **使用方法**：具体的命令行使用方法可参考 `README.md` 文件，例如：
+    - 下载数据和预训练权重：
 ```sh
-pip install -r requirements.txt
-```
-
-## Example Usage
-
-Download the data and pretrained weights:
-```sh
-# Getting the data, 1,700 images, 342mb
 git clone https://github.com/ashnkumar/sketch-code.git
 cd sketch-code
 cd scripts
-
-# Get the data and pretrained weights
 sh get_data.sh
 sh get_pretrained_model.sh
 ```
-
-Converting an example drawn image into HTML code, using pretrained weights:
+    - 将单张图像转换为 HTML 代码：
 ```sh
 cd src
-
-python convert_single_image.py --png_path ../examples/drawn_example1.png \
-      --output_folder ./generated_html \
-      --model_json_file ../bin/model_json.json \
-      --model_weights_file ../bin/weights.h5
-```
-
-
-## General Usage
-
-Converting a single image into HTML code, using weights:
-```sh
-cd src
-
 python convert_single_image.py --png_path {path/to/img.png} \
       --output_folder {folder/to/output/html} \
       --model_json_file {path/to/model/json_file.json} \
       --model_weights_file {path/to/model/weights.h5}
 ```
 
-Converting a batch of images in a folder to HTML:
-```sh
-cd src
+### 项目局限性和未来方向
+- **局限性**：模型仅针对 16 种组件的词汇进行了训练，无法预测数据中未出现的令牌。
+- **未来方向**：
+    - 使用更多元素（如图像、下拉菜单和格式等）生成更多的网页示例。
+    - 创建能更好反映实际网页变化性的训练数据集，例如抓取实际网页并捕获网站内容和 HTML/CSS 代码。
+    - 使用生成对抗网络（GAN）为手绘草图数据生成更多变化，以创建更逼真的网页图像。
 
-python convert_batch_of_images.py --pngs_path {path/to/folder/with/pngs} \
-      --output_folder {folder/to/output/html} \
-      --model_json_file {path/to/model/json_file.json} \
-      --model_weights_file {path/to/model/weights.h5}
-```
-
-Train the model:
-```sh
-cd src
-
-# training from scratch
-# <augment_training_data> adds Keras ImageDataGenerator augmentation for training images
-python train.py --data_input_path {path/to/folder/with/pngs/guis} \
-      --validation_split 0.2 \
-      --epochs 10 \
-      --model_output_path {path/to/output/model}
-      --augment_training_data 1
-
-# training starting with pretrained model
-python train.py --data_input_path {path/to/folder/with/pngs/guis} \
-      --validation_split 0.2 \
-      --epochs 10 \
-      --model_output_path {path/to/output/model} \
-      --model_json_file ../bin/model_json.json \
-      --model_weights_file ../bin/pretrained_weights.h5 \
-      --augment_training_data 1
-```
-
-Evalute the generated prediction using the [BLEU score](https://machinelearningmastery.com/calculate-bleu-score-for-text-python/)
-```sh
-cd src
-
-# evaluate single GUI prediction
-python evaluate_single_gui.py --original_gui_filepath  {path/to/original/gui/file} \
-      --predicted_gui_filepath {path/to/predicted/gui/file}
-
-# training starting with pretrained model
-python evaluate_batch_guis.py --original_guis_filepath  {path/to/folder/with/original/guis} \
-      --predicted_guis_filepath {path/to/folder/with/predicted/guis}
-```
-
-## License
-
-### The MIT License (MIT)
-
-Copyright (c) 2018 Ashwin Kumar<ash.nkumar@gmail.com@gmail.com>
-
-> Permission is hereby granted, free of charge, to any person obtaining a copy
-> of this software and associated documentation files (the "Software"), to deal
-> in the Software without restriction, including without limitation the rights
-> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-> copies of the Software, and to permit persons to whom the Software is
-> furnished to do so, subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be included in
-> all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-> THE SOFTWARE.
