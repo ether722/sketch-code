@@ -1,4 +1,4 @@
-# SketchCode
+# SketchCode 手稿转HTML
 
 一个深度学习项目，旨在将手绘的网页线框图转换为可运行的 HTML 代码。以下是对该项目的详细介绍：
 
